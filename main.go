@@ -37,6 +37,7 @@ func main() {
 	var outputPath string
 	var multiple bool
 	var dependencies bool
+	var verInfo bool
 
 	flag.StringVar(&targetPath, "target", "", "target path")
 	flag.StringVar(&targetPath, "t", "", "target path")
