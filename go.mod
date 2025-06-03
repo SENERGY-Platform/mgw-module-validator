@@ -1,4 +1,4 @@
-module mgw-module-validator
+module github.com/SENERGY-Platform/mgw-module-validator
 
 go 1.24
 

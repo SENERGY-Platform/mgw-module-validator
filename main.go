@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"mgw-module-validator/pkg/validator"
+	"github.com/SENERGY-Platform/mgw-module-validator/pkg/validator"
 	"os"
 )
 

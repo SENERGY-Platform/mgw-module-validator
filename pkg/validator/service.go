@@ -21,7 +21,7 @@ import (
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/util/sem_ver"
 	module_lib_validation "github.com/SENERGY-Platform/mgw-module-lib/validation"
-	"mgw-module-validator/pkg/models"
+	"github.com/SENERGY-Platform/mgw-module-validator/pkg/models"
 	"os"
 	"path"
 	"slices"
