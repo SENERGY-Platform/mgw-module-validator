@@ -39,15 +39,10 @@ func main() {
 	var dependencies bool
 	var verInfo bool
 
-	flag.StringVar(&targetPath, "target", "", "target path")
 	flag.StringVar(&targetPath, "t", "", "target path")
-	flag.StringVar(&outputFormat, "format", textOutputFormat, "output format")
-	flag.StringVar(&outputFormat, "f", textOutputFormat, "output format")
-	flag.StringVar(&outputPath, "output", "", "output file path")
+	flag.StringVar(&outputFormat, "f", textOutputFormat, fmt.Sprintf("output format [%s, %s]", textOutputFormat, jsonOutputFormat))
 	flag.StringVar(&outputPath, "o", "", "output file path")
-	flag.BoolVar(&multiple, "multiple", false, "validate multiple modules")
 	flag.BoolVar(&multiple, "m", false, "validate multiple modules")
-	flag.BoolVar(&dependencies, "dependencies", false, "check dependencies")
 	flag.BoolVar(&dependencies, "d", false, "check dependencies")
 	flag.BoolVar(&verInfo, "v", false, "print version")
 	flag.Parse()
