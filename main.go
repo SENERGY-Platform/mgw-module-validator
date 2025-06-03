@@ -99,7 +99,11 @@ func main() {
 			}
 		}
 	} else {
-		report := validator.Validate(targetPath)
+		report, err := validator.Validate(targetPath)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 		switch outputFormat {
 		case textOutputFormat:
 			if err := writeOutputString(outputPath, report.String()+"\n"); err != nil {

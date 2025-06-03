@@ -40,7 +40,11 @@ func ValidateMany(dirPath string, dependencies bool) ([]models.Report, error) {
 		var deps [][2]string               // [depID, depVerRng]
 		for _, entry := range entries {
 			if entry.IsDir() {
-				report, mod := validate(path.Join(dirPath, entry.Name()))
+				report, mod, err := validate(path.Join(dirPath, entry.Name()))
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
 				reportMap[entry.Name()] = report
 				if mod != nil {
 					mods[mod.ID] = [2]string{mod.Version, entry.Name()}
@@ -70,7 +74,12 @@ func ValidateMany(dirPath string, dependencies bool) ([]models.Report, error) {
 	} else {
 		for _, entry := range entries {
 			if entry.IsDir() {
-				reports = append(reports, Validate(path.Join(dirPath, entry.Name())))
+				report, _, err := validate(path.Join(dirPath, entry.Name()))
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+				reports = append(reports, report)
 			}
 		}
 	}
@@ -80,27 +89,28 @@ func ValidateMany(dirPath string, dependencies bool) ([]models.Report, error) {
 	return reports, nil
 }
 
-func Validate(dirPath string) models.Report {
-	ri, _ := validate(dirPath)
-	return ri
+func Validate(dirPath string) (models.Report, error) {
+	report, _, err := validate(dirPath)
+	if err != nil {
+		return models.Report{}, err
+	}
+	return report, nil
 }
 
-func validate(dirPath string) (models.Report, *module_lib.Module) {
-	ri := models.Report{
-		DirName: strings.TrimSuffix(path.Base(dirPath), path.Ext(dirPath)),
-		Status:  models.StatusPassed,
-	}
+func validate(dirPath string) (models.Report, *module_lib.Module, error) {
 	mod, err := getModule(dirPath)
 	if err != nil {
-		ri.Errs = append(ri.Errs, err.Error())
-		ri.Status = models.StatusFailed
-		return ri, nil
+		return models.Report{}, nil, err
 	}
-	ri.ModID = mod.ID
-	ri.ModVer = mod.Version
+	ri := models.Report{
+		DirName: strings.TrimSuffix(path.Base(dirPath), path.Ext(dirPath)),
+		ModID:   mod.ID,
+		ModVer:  mod.Version,
+		Status:  models.StatusPassed,
+	}
 	if err = module_lib_validation.Validate(mod); err != nil {
 		ri.Errs = append(ri.Errs, err.Error())
 		ri.Status = models.StatusFailed
 	}
-	return ri, mod
+	return ri, mod, nil
 }
