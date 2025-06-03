@@ -29,6 +29,8 @@ const (
 	jsonOutputFormat = "json"
 )
 
+var version string
+
 func main() {
 	var targetPath string
 	var outputFormat string
@@ -46,7 +48,13 @@ func main() {
 	flag.BoolVar(&multiple, "m", false, "validate multiple modules")
 	flag.BoolVar(&dependencies, "dependencies", false, "check dependencies")
 	flag.BoolVar(&dependencies, "d", false, "check dependencies")
+	flag.BoolVar(&verInfo, "v", false, "print version")
 	flag.Parse()
+
+	if verInfo {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 
 	if targetPath == "" {
 		targetPath = flag.Arg(0)
