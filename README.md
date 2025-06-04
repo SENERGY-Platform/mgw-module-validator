@@ -9,13 +9,14 @@ Validate MGW modules.
 
 #### Available options:
 
-    -b string   base path
-    -d          check dependencies
-    -f string   output format [text, json] (default "text")
-    -m          validate multiple modules
-    -o string   output file path
-    -t string   target path
-    -v          print version
+    -b      string  base path
+    -blk    string  directory blacklist
+    -d              check dependencies
+    -f      string  output format [text, json] (default "text")
+    -m              validate multiple modules
+    -o      string  output file path
+    -t      string  target path
+    -v              print version
 
 ## Run as docker container
 
@@ -23,9 +24,10 @@ Validate MGW modules.
 
 #### Available options:
 
-    -d          check dependencies
-    -f string   output format [text, json] (default "text")
-    -m          validate multiple modules
-    -o string   output file path
-    -t string   target path
-    -v          print version
+    -blk    string  directory blacklist
+    -d              check dependencies
+    -f      string  output format [text, json] (default "text")
+    -m              validate multiple modules
+    -o      string  output file path
+    -t      string  target path
+    -v              print version
