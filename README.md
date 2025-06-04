@@ -1,6 +1,8 @@
 mgw-module-validator
 =======
 
+Validate MGW modules.
+
 ## Run from terminal
 
     mgw-mod-validator [OPTION]... [PATH]
