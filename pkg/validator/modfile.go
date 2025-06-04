@@ -26,10 +26,22 @@ import (
 var re = regexp.MustCompile(`^Modfile\.(?:yml|yaml)$`)
 var NoModfileErr = errors.New("missing modfile")
 
+type OpenModfileErr struct {
+	err error
+}
+
+func (e *OpenModfileErr) Error() string {
+	return e.err.Error()
+}
+
+func (e *OpenModfileErr) Unwrap() error {
+	return e.err
+}
+
 func openModFile(dirPath string) (*os.File, error) {
 	dirEntries, err := os.ReadDir(dirPath)
 	if err != nil {
-		return nil, err
+		return nil, &OpenModfileErr{err: err}
 	}
 	for _, entry := range dirEntries {
 		if !entry.IsDir() {
@@ -37,11 +49,11 @@ func openModFile(dirPath string) (*os.File, error) {
 			if re.MatchString(eName) {
 				f, err := os.Open(path.Join(dirPath, eName))
 				if err != nil {
-					return nil, err
+					return nil, &OpenModfileErr{err: err}
 				}
 				return f, nil
 			}
 		}
 	}
-	return nil, NoModfileErr
+	return nil, &OpenModfileErr{err: NoModfileErr}
 }
