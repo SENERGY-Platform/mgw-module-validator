@@ -52,4 +52,4 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: mgw_host_manager_${{ github.ref_name }}_linux.tar.gz
+          files: mgw-module-validator_${{ github.ref_name }}_linux.tar.gz
