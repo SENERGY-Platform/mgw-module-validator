@@ -17,6 +17,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 	"github.com/SENERGY-Platform/mgw-module-lib/util/sem_ver"
@@ -93,7 +94,7 @@ func ValidateMany(dirPath string, dependencies bool, blacklist []string) ([]mode
 		}
 	}
 	slices.SortStableFunc(reports, func(a, b models.Report) int {
-		return strings.Compare(a.ModID, b.ModID)
+		return strings.Compare(a.DirName, b.DirName)
 	})
 	return reports, nil
 }
@@ -107,16 +108,22 @@ func Validate(dirPath string) (models.Report, error) {
 }
 
 func validate(dirPath string) (models.Report, *module_lib.Module, error) {
-	mod, err := getModule(dirPath)
-	if err != nil {
-		return models.Report{}, nil, err
-	}
 	ri := models.Report{
 		DirName: strings.TrimSuffix(path.Base(dirPath), path.Ext(dirPath)),
-		ModID:   mod.ID,
-		ModVer:  mod.Version,
 		Status:  models.StatusPassed,
 	}
+	mod, err := getModule(dirPath)
+	if err != nil {
+		var omf *OpenModfileErr
+		if errors.As(err, &omf) {
+			return models.Report{}, nil, fmt.Errorf("%s: %s", dirPath, err)
+		}
+		ri.Errs = append(ri.Errs, err.Error())
+		ri.Status = models.StatusFailed
+		return ri, nil, nil
+	}
+	ri.ModID = mod.ID
+	ri.ModVer = mod.Version
 	if err = module_lib_validation.Validate(mod); err != nil {
 		ri.Errs = append(ri.Errs, err.Error())
 		ri.Status = models.StatusFailed
