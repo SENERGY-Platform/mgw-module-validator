@@ -1,9 +1,6 @@
 mgw-module-validator
 =======
 
-![Image](https://img.shields.io/github/v/tag/SENERGY-Platform/mgw-module-validator?filter=v%2A&label=latest)
-
-
 ## Run from terminal
 
     mgw-mod-validator [OPTION]... [PATH]
