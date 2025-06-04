@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/mgw-module-validator/pkg/validator"
 	"os"
+	"path"
 )
 
 const (
@@ -33,6 +34,7 @@ var version string
 
 func main() {
 	var targetPath string
+	var basePath string
 	var outputFormat string
 	var outputPath string
 	var multiple bool
@@ -41,6 +43,7 @@ func main() {
 
 	flag.StringVar(&targetPath, "t", "", "target path")
 	flag.StringVar(&outputFormat, "f", textOutputFormat, fmt.Sprintf("output format [%s, %s]", textOutputFormat, jsonOutputFormat))
+	flag.StringVar(&basePath, "b", "", "base path")
 	flag.StringVar(&outputPath, "o", "", "output file path")
 	flag.BoolVar(&multiple, "m", false, "validate multiple modules")
 	flag.BoolVar(&dependencies, "d", false, "check dependencies")
@@ -55,6 +58,11 @@ func main() {
 	if targetPath == "" {
 		targetPath = flag.Arg(0)
 	}
+
+	if basePath != "" {
+		targetPath = path.Join(basePath, targetPath)
+	}
+
 	if targetPath == "" {
 		fmt.Println("no target path specified")
 		os.Exit(1)
