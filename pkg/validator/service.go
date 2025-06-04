@@ -28,6 +28,11 @@ import (
 	"strings"
 )
 
+type modWrapper struct {
+	Module  *module_lib.Module
+	DirName string
+}
+
 func ValidateMany(dirPath string, dependencies bool) ([]models.Report, error) {
 	entries, err := os.ReadDir(dirPath)
 	if err != nil {
@@ -36,8 +41,7 @@ func ValidateMany(dirPath string, dependencies bool) ([]models.Report, error) {
 	var reports []models.Report
 	if dependencies {
 		reportMap := make(map[string]models.Report)
-		mods := make(map[string][2]string) // {modID:[modVer, dirName]}
-		var deps [][2]string               // [depID, depVerRng]
+		mods := make(map[string]modWrapper)
 		for _, entry := range entries {
 			if entry.IsDir() {
 				report, mod, err := validate(path.Join(dirPath, entry.Name()))
@@ -47,25 +51,30 @@ func ValidateMany(dirPath string, dependencies bool) ([]models.Report, error) {
 				}
 				reportMap[entry.Name()] = report
 				if mod != nil {
-					mods[mod.ID] = [2]string{mod.Version, entry.Name()}
-					for depID, depVerRng := range mod.Dependencies {
-						deps = append(deps, [2]string{depID, depVerRng})
+					mods[mod.ID] = modWrapper{
+						Module:  mod,
+						DirName: entry.Name(),
 					}
 				}
 			}
 		}
-		for _, dep := range deps {
-			mod, ok := mods[dep[0]]
-			if !ok {
-				report := reportMap[mod[1]]
-				report.Errs = append(report.Errs, fmt.Sprintf("missing dependency: %s", dep[0]))
-				reportMap[mod[1]] = report
-				continue
-			}
-			if ok, _ = sem_ver.InSemVerRange(dep[1], mod[0]); !ok {
-				report := reportMap[mod[1]]
-				report.Errs = append(report.Errs, fmt.Sprintf("dependency version not satisfied: %s available=%s required=%s", dep[0], mod[0], dep[1]))
-				reportMap[mod[1]] = report
+		for _, wrapper := range mods {
+			for depID, depVerRng := range wrapper.Module.Dependencies {
+				var errMsgs []string
+				mod, ok := mods[depID]
+				if !ok {
+					errMsgs = append(errMsgs, fmt.Sprintf("missing dependency: %s", depID))
+				} else {
+					if ok, _ = sem_ver.InSemVerRange(depVerRng, mod.Module.Version); !ok {
+						errMsgs = append(errMsgs, fmt.Sprintf("dependency version not satisfied: %s available=%s required=%s", depID, mod.Module.Version, depVerRng))
+					}
+				}
+				if len(errMsgs) > 0 {
+					report := reportMap[wrapper.DirName]
+					report.Errs = append(report.Errs, errMsgs...)
+					report.Status = models.StatusFailed
+					reportMap[wrapper.DirName] = report
+				}
 			}
 		}
 		for _, report := range reportMap {
