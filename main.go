@@ -23,6 +23,7 @@ import (
 	"github.com/SENERGY-Platform/mgw-module-validator/pkg/validator"
 	"os"
 	"path"
+	"strings"
 )
 
 const (
@@ -40,6 +41,7 @@ func main() {
 	var multiple bool
 	var dependencies bool
 	var verInfo bool
+	var dirBlacklist string
 
 	flag.StringVar(&targetPath, "t", "", "target path")
 	flag.StringVar(&outputFormat, "f", textOutputFormat, fmt.Sprintf("output format [%s, %s]", textOutputFormat, jsonOutputFormat))
@@ -48,6 +50,7 @@ func main() {
 	flag.BoolVar(&multiple, "m", false, "validate multiple modules")
 	flag.BoolVar(&dependencies, "d", false, "check dependencies")
 	flag.BoolVar(&verInfo, "v", false, "print version")
+	flag.StringVar(&dirBlacklist, "blk", "", "directory blacklist")
 	flag.Parse()
 
 	if verInfo {
@@ -69,7 +72,7 @@ func main() {
 	}
 
 	if multiple {
-		reports, err := validator.ValidateMany(targetPath, dependencies)
+		reports, err := validator.ValidateMany(targetPath, dependencies, strings.Split(dirBlacklist, ","))
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)

@@ -33,7 +33,7 @@ type modWrapper struct {
 	DirName string
 }
 
-func ValidateMany(dirPath string, dependencies bool) ([]models.Report, error) {
+func ValidateMany(dirPath string, dependencies bool, blacklist []string) ([]models.Report, error) {
 	entries, err := os.ReadDir(dirPath)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func ValidateMany(dirPath string, dependencies bool) ([]models.Report, error) {
 		reportMap := make(map[string]models.Report)
 		mods := make(map[string]modWrapper)
 		for _, entry := range entries {
-			if entry.IsDir() {
+			if entry.IsDir() && !inBlacklist(blacklist, entry.Name()) {
 				report, mod, err := validate(path.Join(dirPath, entry.Name()))
 				if err != nil {
 					fmt.Println(err)
@@ -82,7 +82,7 @@ func ValidateMany(dirPath string, dependencies bool) ([]models.Report, error) {
 		}
 	} else {
 		for _, entry := range entries {
-			if entry.IsDir() {
+			if entry.IsDir() && !inBlacklist(blacklist, entry.Name()) {
 				report, _, err := validate(path.Join(dirPath, entry.Name()))
 				if err != nil {
 					fmt.Println(err)
@@ -122,4 +122,13 @@ func validate(dirPath string) (models.Report, *module_lib.Module, error) {
 		ri.Status = models.StatusFailed
 	}
 	return ri, mod, nil
+}
+
+func inBlacklist(l []string, a string) bool {
+	for _, b := range l {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
