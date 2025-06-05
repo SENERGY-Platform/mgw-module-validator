@@ -35,13 +35,13 @@ type Report struct {
 
 func (r *Report) String() string {
 	var str string
-	str += fmt.Sprintf("dir_name: %s\n", r.DirName)
-	str += fmt.Sprintf("module_id: %s\n", r.ModID)
-	str += fmt.Sprintf("module_version: %s\n", r.ModVer)
-	str += fmt.Sprintf("errors:\n")
+	str += fmt.Sprintf("%s:\n", r.DirName)
+	str += fmt.Sprintf("\tmodule_id: %s\n", r.ModID)
+	str += fmt.Sprintf("\tmodule_version: %s\n", r.ModVer)
+	str += fmt.Sprintf("\terrors:\n")
 	for _, err := range r.Errs {
-		str += fmt.Sprintf("\t%s\n", err)
+		str += fmt.Sprintf("\t\t%s\n", err)
 	}
-	str += fmt.Sprintf("status: %s", r.Status)
+	str += fmt.Sprintf("\tstatus: %s", r.Status)
 	return str
 }

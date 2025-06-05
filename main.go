@@ -71,6 +71,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	if outputFormat != textOutputFormat && outputFormat != jsonOutputFormat {
+		fmt.Println("invalid output format")
+		os.Exit(1)
+	}
+
+	if outputPath == "" {
+		fmt.Println()
+	}
+
 	if multiple {
 		reports, err := validator.ValidateMany(targetPath, dependencies, strings.Split(dirBlacklist, ","))
 		if err != nil {
@@ -80,12 +89,8 @@ func main() {
 		switch outputFormat {
 		case textOutputFormat:
 			var str string
-			lenReports := len(reports)
-			for i, report := range reports {
-				str += report.String() + "\n"
-				if i < lenReports-1 {
-					str += "\n"
-				}
+			for _, report := range reports {
+				str += "\n" + report.String() + "\n"
 			}
 			if err := writeOutputString(outputPath, str); err != nil {
 				fmt.Println(err)
@@ -101,13 +106,18 @@ func main() {
 				fmt.Println(err)
 				os.Exit(1)
 			}
-		default:
-			fmt.Println("invalid output format")
 		}
+		failedCount := 0
 		for _, report := range reports {
 			if len(report.Errs) > 0 {
-				os.Exit(1)
+				failedCount++
 			}
+		}
+		fmt.Printf("\nValidated %d modules\n", len(reports))
+		fmt.Printf("%d passed\n", len(reports)-failedCount)
+		fmt.Printf("%d failed\n\n", failedCount)
+		if failedCount > 0 {
+			os.Exit(1)
 		}
 	} else {
 		report, err := validator.Validate(targetPath)
@@ -131,8 +141,6 @@ func main() {
 				fmt.Println(err)
 				os.Exit(1)
 			}
-		default:
-			fmt.Println("invalid output format")
 		}
 		if len(report.Errs) > 0 {
 			os.Exit(1)
