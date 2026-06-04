@@ -20,10 +20,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/SENERGY-Platform/mgw-module-validator/pkg/validator"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/SENERGY-Platform/mgw-module-validator/pkg/validator"
 )
 
 const (

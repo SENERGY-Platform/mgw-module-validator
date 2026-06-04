@@ -19,18 +19,19 @@ package validator
 import (
 	"errors"
 	"fmt"
-	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
-	"github.com/SENERGY-Platform/mgw-module-lib/util/sem_ver"
-	module_lib_validation "github.com/SENERGY-Platform/mgw-module-lib/validation"
-	"github.com/SENERGY-Platform/mgw-module-validator/pkg/models"
 	"os"
 	"path"
 	"slices"
 	"strings"
+
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
+	"github.com/SENERGY-Platform/mgw-module-lib/util/sem_ver"
+	module_lib_validation "github.com/SENERGY-Platform/mgw-module-lib/validation"
+	"github.com/SENERGY-Platform/mgw-module-validator/pkg/models"
 )
 
 type modWrapper struct {
-	Module  *module_lib.Module
+	Module  module_lib.Module
 	DirName string
 }
 
@@ -51,11 +52,9 @@ func ValidateMany(dirPath string, dependencies bool, blacklist []string) ([]mode
 					continue
 				}
 				reportMap[entry.Name()] = report
-				if mod != nil {
-					mods[mod.ID] = modWrapper{
-						Module:  mod,
-						DirName: entry.Name(),
-					}
+				mods[mod.ID] = modWrapper{
+					Module:  mod,
+					DirName: entry.Name(),
 				}
 			}
 		}
@@ -107,7 +106,7 @@ func Validate(dirPath string) (models.Report, error) {
 	return report, nil
 }
 
-func validate(dirPath string) (models.Report, *module_lib.Module, error) {
+func validate(dirPath string) (models.Report, module_lib.Module, error) {
 	ri := models.Report{
 		DirName: strings.TrimSuffix(path.Base(dirPath), path.Ext(dirPath)),
 		Status:  models.StatusPassed,
@@ -116,11 +115,11 @@ func validate(dirPath string) (models.Report, *module_lib.Module, error) {
 	if err != nil {
 		var omf *OpenModfileErr
 		if errors.As(err, &omf) {
-			return models.Report{}, nil, fmt.Errorf("%s: %s", dirPath, err)
+			return models.Report{}, module_lib.Module{}, fmt.Errorf("%s: %s", dirPath, err)
 		}
 		ri.Errs = append(ri.Errs, err.Error())
 		ri.Status = models.StatusFailed
-		return ri, nil, nil
+		return ri, module_lib.Module{}, nil
 	}
 	ri.ModID = mod.ID
 	ri.ModVer = mod.Version

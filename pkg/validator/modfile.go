@@ -18,12 +18,14 @@ package validator
 
 import (
 	"errors"
+	"io/fs"
 	"os"
-	"path"
 	"regexp"
+
+	modfile_lib "github.com/SENERGY-Platform/mgw-modfile-lib"
+	module_lib "github.com/SENERGY-Platform/mgw-module-lib/model"
 )
 
-var re = regexp.MustCompile(`^Modfile\.(?:yml|yaml)$`)
 var NoModfileErr = errors.New("missing modfile")
 
 type OpenModfileErr struct {
@@ -38,22 +40,39 @@ func (e *OpenModfileErr) Unwrap() error {
 	return e.err
 }
 
-func openModFile(dirPath string) (*os.File, error) {
-	dirEntries, err := os.ReadDir(dirPath)
+var regExp = regexp.MustCompile(`^Modfile\.(?:yml|yaml)$`)
+
+func getModule(dirPath string) (module_lib.Module, error) {
+	fSys := os.DirFS(dirPath)
+	mfPath, err := findFile(fSys, regExp.MatchString)
 	if err != nil {
-		return nil, &OpenModfileErr{err: err}
+		return module_lib.Module{}, &OpenModfileErr{err: err}
 	}
-	for _, entry := range dirEntries {
-		if !entry.IsDir() {
-			eName := entry.Name()
-			if re.MatchString(eName) {
-				f, err := os.Open(path.Join(dirPath, eName))
-				if err != nil {
-					return nil, &OpenModfileErr{err: err}
-				}
-				return f, nil
-			}
+	if mfPath == "" {
+		return module_lib.Module{}, &OpenModfileErr{err: NoModfileErr}
+	}
+	file, err := fSys.Open(mfPath)
+	if err != nil {
+		return module_lib.Module{}, &OpenModfileErr{err: err}
+	}
+	defer file.Close()
+	return modfile_lib.Decode(file)
+}
+
+func findFile(fSys fs.FS, match func(v string) bool) (string, error) {
+	var filePath string
+	err := fs.WalkDir(fSys, ".", func(currentPath string, dirEntry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
+		if !dirEntry.IsDir() && match(dirEntry.Name()) {
+			filePath = currentPath
+			return fs.SkipAll
+		}
+		return nil
+	})
+	if err != nil {
+		return "", err
 	}
-	return nil, &OpenModfileErr{err: NoModfileErr}
+	return filePath, nil
 }
