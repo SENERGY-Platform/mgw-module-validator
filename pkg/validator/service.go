@@ -35,7 +35,7 @@ type modWrapper struct {
 	DirName string
 }
 
-func ValidateMany(dirPath string, dependencies bool, blacklist []string) ([]models.Report, error) {
+func ValidateMany(dirPath string, dependencies bool, blacklist []string, moduleIdPrefix string) ([]models.Report, error) {
 	entries, err := os.ReadDir(dirPath)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func ValidateMany(dirPath string, dependencies bool, blacklist []string) ([]mode
 		mods := make(map[string]modWrapper)
 		for _, entry := range entries {
 			if entry.IsDir() && !inBlacklist(blacklist, entry.Name()) {
-				report, mod, err := validate(path.Join(dirPath, entry.Name()))
+				report, mod, err := validate(path.Join(dirPath, entry.Name()), moduleIdPrefix)
 				if err != nil {
 					fmt.Println(err)
 					continue
@@ -83,7 +83,7 @@ func ValidateMany(dirPath string, dependencies bool, blacklist []string) ([]mode
 	} else {
 		for _, entry := range entries {
 			if entry.IsDir() && !inBlacklist(blacklist, entry.Name()) {
-				report, _, err := validate(path.Join(dirPath, entry.Name()))
+				report, _, err := validate(path.Join(dirPath, entry.Name()), moduleIdPrefix)
 				if err != nil {
 					fmt.Println(err)
 					continue
@@ -98,15 +98,15 @@ func ValidateMany(dirPath string, dependencies bool, blacklist []string) ([]mode
 	return reports, nil
 }
 
-func Validate(dirPath string) (models.Report, error) {
-	report, _, err := validate(dirPath)
+func Validate(dirPath string, moduleIdPrefix string) (models.Report, error) {
+	report, _, err := validate(dirPath, moduleIdPrefix)
 	if err != nil {
 		return models.Report{}, err
 	}
 	return report, nil
 }
 
-func validate(dirPath string) (models.Report, module_lib.Module, error) {
+func validate(dirPath string, moduleIdPrefix string) (models.Report, module_lib.Module, error) {
 	ri := models.Report{
 		DirName: strings.TrimSuffix(path.Base(dirPath), path.Ext(dirPath)),
 		Status:  models.StatusPassed,
@@ -123,6 +123,10 @@ func validate(dirPath string) (models.Report, module_lib.Module, error) {
 	}
 	ri.ModID = mod.ID
 	ri.ModVer = mod.Version
+	if moduleIdPrefix != "" && !strings.HasPrefix(mod.ID, moduleIdPrefix) {
+		ri.Errs = append(ri.Errs, fmt.Sprintf("invalid module id: missing prefix"))
+		ri.Status = models.StatusFailed
+	}
 	if err = module_lib_validation.Validate(mod); err != nil {
 		ri.Errs = append(ri.Errs, err.Error())
 		ri.Status = models.StatusFailed

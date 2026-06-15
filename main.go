@@ -43,6 +43,7 @@ func main() {
 	var dependencies bool
 	var verInfo bool
 	var dirBlacklist string
+	var moduleIdPrefix string
 
 	flag.StringVar(&targetPath, "t", "", "target path")
 	flag.StringVar(&outputFormat, "f", textOutputFormat, fmt.Sprintf("output format [%s, %s]", textOutputFormat, jsonOutputFormat))
@@ -52,6 +53,7 @@ func main() {
 	flag.BoolVar(&dependencies, "d", false, "check dependencies")
 	flag.BoolVar(&verInfo, "v", false, "print version")
 	flag.StringVar(&dirBlacklist, "blk", "", "directory blacklist")
+	flag.StringVar(&moduleIdPrefix, "p", "", "module id prefix")
 	flag.Parse()
 
 	if verInfo {
@@ -82,7 +84,7 @@ func main() {
 	}
 
 	if multiple {
-		reports, err := validator.ValidateMany(targetPath, dependencies, strings.Split(dirBlacklist, ","))
+		reports, err := validator.ValidateMany(targetPath, dependencies, strings.Split(dirBlacklist, ","), moduleIdPrefix)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -121,7 +123,7 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		report, err := validator.Validate(targetPath)
+		report, err := validator.Validate(targetPath, moduleIdPrefix)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
