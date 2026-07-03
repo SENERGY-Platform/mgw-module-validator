@@ -3,8 +3,8 @@ module github.com/SENERGY-Platform/mgw-module-validator
 go 1.24
 
 require (
-	github.com/SENERGY-Platform/mgw-modfile-lib v0.33.2
-	github.com/SENERGY-Platform/mgw-module-lib v0.32.3
+	github.com/SENERGY-Platform/mgw-modfile-lib v0.35.1
+	github.com/SENERGY-Platform/mgw-module-lib v0.34.1
 )
 
 require (
